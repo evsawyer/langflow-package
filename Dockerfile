@@ -22,6 +22,7 @@ ENV PATH="/root/.local/bin/:$PATH"
 
 # Install langflow using uv
 RUN uv pip install --system --no-cache langflow
+RUN uv pip install --system --no-cache slack-sdk
 
 # # Cloud Run will set PORT environment variable
 # ENV PORT=7860
