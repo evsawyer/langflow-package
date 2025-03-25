@@ -1,29 +1,29 @@
-# Use Python 3.9 as base image
-FROM python:3.12
+# Use Python 3.9-slim-bookworm as base image
+FROM python:3.12-slim-bookworm
 
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies and curl
-RUN apt-get update && apt-get install -y \
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     curl \
+    ca-certificates \
+    build-essential \
+    python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install uv 
-ENV VIRTUAL_ENV=/usr/local
+# Download and install uv
+ADD https://astral.sh/uv/install.sh /uv-installer.sh
+RUN sh /uv-installer.sh && rm /uv-installer.sh
 
-ADD --chmod=755 https://astral.sh/uv/install.sh /install.sh
-RUN echo "=== Installing uv ===" && \
-    /install.sh && \
-    echo "=== Installation complete ===" && \
-    echo "=== Checking cargo bin ===" && \
-    ls -la /root/.local/bin && \
-    echo "=== Current PATH ===" && \
-    echo $PATH && \
-    rm /install.sh
+# Ensure uv is on PATH
+ENV PATH="/root/.local/bin/:$PATH"
 
-# install requirements via uv
-RUN /root/.local/bin/uv pip install --system --no-cache langflow
+# Install langflow using uv
+RUN uv pip install --system --no-cache langflow
+
+# # Cloud Run will set PORT environment variable
+# ENV PORT=7860
 
 CMD ["uv", "run", "langflow", "run", "--host", "0.0.0.0", "--port", "7860"]
